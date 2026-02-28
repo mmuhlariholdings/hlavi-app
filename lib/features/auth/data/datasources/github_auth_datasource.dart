@@ -48,14 +48,13 @@ class GithubAuthDataSource {
     }
 
     try {
-      // SECURITY: Not providing clientSecret makes flutter_appauth use PKCE
-      // (Proof Key for Code Exchange), which is the secure standard for mobile apps.
-      // PKCE generates a dynamic code_verifier instead of using a static secret.
+      // NOTE: Traditional GitHub OAuth Apps require client_secret
+      // For production, consider creating a GitHub App which supports PKCE
       final result = await _appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
           EnvConfig.githubClientId,
           EnvConfig.githubRedirectUri,
-          // No clientSecret = PKCE is automatically used
+          clientSecret: EnvConfig.githubClientSecret,
           serviceConfiguration: const AuthorizationServiceConfiguration(
             authorizationEndpoint: _authorizationEndpoint,
             tokenEndpoint: _tokenEndpoint,
