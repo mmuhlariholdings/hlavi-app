@@ -2,7 +2,31 @@
 
 ## Issues Fixed
 
-### 1. ✅ Added Provider Caching
+### 1. ✅ Fixed Base64 Decoding Error
+**Problem:** Task files were not loading due to `FormatException` when decoding base64 content from GitHub API
+
+**Root Cause:** GitHub's API returns base64-encoded content with whitespace (newlines and spaces) for formatting, but Dart's `base64.decode()` doesn't allow whitespace characters.
+
+**Solution:** Strip all whitespace from base64 strings before decoding
+
+**Files Modified:**
+- [lib/features/tasks/data/datasources/task_remote_datasource.dart](lib/features/tasks/data/datasources/task_remote_datasource.dart)
+  - Added `replaceAll(RegExp(r'\s'), '')` to remove whitespace before decoding
+  - Applied to both `getTasks()` and `getTask()` methods
+
+**Code:**
+```dart
+// Remove whitespace from base64 string (GitHub API adds newlines/spaces)
+final cleanedContent = content.content!.replaceAll(RegExp(r'\s'), '');
+final decoded = utf8.decode(base64.decode(cleanedContent));
+```
+
+**Impact:**
+- Tasks now load successfully from GitHub repositories
+- Statistics cards display correct task counts
+- All task-related features now functional
+
+### 2. ✅ Added Provider Caching
 **Problem:** Data was reloaded from scratch every time (no caching)
 
 **Solution:** Implemented `keepAlive()` with timers on all FutureProviders
@@ -30,7 +54,7 @@ final tasksProvider = FutureProvider<List<Task>>((ref) async {
 - Reduces GitHub API calls (5000/hour limit)
 - Faster perceived performance
 
-### 2. ✅ Added Shimmer Loading Effect
+### 3. ✅ Added Shimmer Loading Effect
 **Problem:** Boring loading spinners, no visual feedback like web app
 
 **Solution:** Created `StatCardShimmer` widget with animated shimmer effect
@@ -56,7 +80,7 @@ Statistics
 [Shimmer] [Shimmer]
 ```
 
-### 3. ✅ Updated Dashboard to Use Shimmer
+### 4. ✅ Updated Dashboard to Use Shimmer
 **File:** [lib/features/dashboard/presentation/screens/dashboard_screen.dart](lib/features/dashboard/presentation/screens/dashboard_screen.dart)
 
 **Changes:**
@@ -64,26 +88,36 @@ Statistics
 - Maintains same layout as loaded state
 - Better user experience with skeleton screens
 
-## Files Modified
+## Files Modified Summary
 
-1. **[lib/features/repository/presentation/providers/repository_providers.dart](lib/features/repository/presentation/providers/repository_providers.dart)**
+1. **[lib/features/tasks/data/datasources/task_remote_datasource.dart](lib/features/tasks/data/datasources/task_remote_datasource.dart)**
+   - Fixed base64 decoding by removing whitespace
+   - Applied to both `getTasks()` and `getTask()` methods
+
+2. **[lib/features/repository/presentation/providers/repository_providers.dart](lib/features/repository/presentation/providers/repository_providers.dart)**
    - Added `dart:async` import
    - Added caching to `repositoriesProvider` (5 min)
    - Added caching to `branchesProvider` (5 min)
    - Added caching to `hasHlaviDirectoryProvider` (5 min)
 
-2. **[lib/features/tasks/presentation/providers/task_providers.dart](lib/features/tasks/presentation/providers/task_providers.dart)**
+3. **[lib/features/tasks/presentation/providers/task_providers.dart](lib/features/tasks/presentation/providers/task_providers.dart)**
    - Added `dart:async` import
    - Added caching to `tasksProvider` (1 min)
 
-3. **[lib/features/dashboard/presentation/screens/dashboard_screen.dart](lib/features/dashboard/presentation/screens/dashboard_screen.dart)**
+4. **[lib/features/dashboard/presentation/screens/dashboard_screen.dart](lib/features/dashboard/presentation/screens/dashboard_screen.dart)**
    - Added `StatCardShimmer` import
    - Updated loading state to show shimmer grid
 
-4. **[lib/shared/widgets/stat_card_shimmer.dart](lib/shared/widgets/stat_card_shimmer.dart)** *(new file)*
+5. **[lib/shared/widgets/stat_card_shimmer.dart](lib/shared/widgets/stat_card_shimmer.dart)** *(new file)*
    - Created shimmer loading placeholder
 
 ## How to Test
+
+### Test Base64 Fix:
+1. Select any repository with `.hlavi` directory and tasks
+2. Verify tasks load without errors
+3. Check that statistics cards show correct counts
+4. All task counts should match the actual number of tasks in each status
 
 ### Test Caching:
 1. Select a repository and branch → wait for tasks to load

@@ -41,10 +41,13 @@ class TaskRemoteDataSource {
               continue;
             }
 
-            final decoded = utf8.decode(base64.decode(content.content!));
+            // Remove whitespace from base64 string (GitHub API adds newlines/spaces)
+            final cleanedContent = content.content!.replaceAll(RegExp(r'\s'), '');
+            final decoded = utf8.decode(base64.decode(cleanedContent));
             final json = jsonDecode(decoded) as Map<String, dynamic>;
 
-            tasks.add(Task.fromJson(json));
+            final task = Task.fromJson(json);
+            tasks.add(task);
           } catch (e) {
             // Skip malformed task files
             continue;
@@ -82,7 +85,9 @@ class TaskRemoteDataSource {
         return null;
       }
 
-      final decoded = utf8.decode(base64.decode(content.content!));
+      // Remove whitespace from base64 string (GitHub API adds newlines/spaces)
+      final cleanedContent = content.content!.replaceAll(RegExp(r'\s'), '');
+      final decoded = utf8.decode(base64.decode(cleanedContent));
       final json = jsonDecode(decoded) as Map<String, dynamic>;
 
       return Task.fromJson(json);
