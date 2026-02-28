@@ -33,10 +33,14 @@ class BranchSelector extends ConsumerWidget {
           );
         }
 
-        // Auto-select first branch if none selected
+        // Auto-select default branch if none selected
         if (selectedBranch == null && branches.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(selectedBranchProvider.notifier).state = branches.first;
+            // Use default branch if available, otherwise first branch
+            final branchToSelect = branches.contains(selectedRepo.defaultBranch)
+                ? selectedRepo.defaultBranch
+                : branches.first;
+            ref.read(selectedBranchProvider.notifier).state = branchToSelect;
           });
         }
 

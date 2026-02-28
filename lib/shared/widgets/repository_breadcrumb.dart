@@ -45,11 +45,15 @@ class RepositoryBreadcrumb extends ConsumerWidget {
       repo: selectedRepo.name,
     )));
 
-    // Auto-select first branch if none selected
+    // Auto-select default branch if none selected
     branchesAsync.whenData((branches) {
       if (selectedBranch == null && branches.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(selectedBranchProvider.notifier).state = branches.first;
+          // Use default branch if available, otherwise first branch
+          final branchToSelect = branches.contains(selectedRepo.defaultBranch)
+              ? selectedRepo.defaultBranch
+              : branches.first;
+          ref.read(selectedBranchProvider.notifier).state = branchToSelect;
         });
       }
     });
@@ -146,7 +150,7 @@ class RepositoryBreadcrumb extends ConsumerWidget {
                   const Icon(Icons.code_outlined, size: 14),
                   const SizedBox(width: 6),
                   Text(
-                    selectedBranch ?? 'Loading...',
+                    selectedBranch ?? selectedRepo.defaultBranch,
                     style: const TextStyle(fontSize: 14),
                   ),
                   const SizedBox(width: 8),
@@ -162,7 +166,7 @@ class RepositoryBreadcrumb extends ConsumerWidget {
                   const Icon(Icons.code_outlined, size: 14),
                   const SizedBox(width: 6),
                   Text(
-                    selectedBranch ?? 'Error loading branches',
+                    selectedBranch ?? selectedRepo.defaultBranch,
                     style: const TextStyle(fontSize: 14),
                   ),
                 ],

@@ -20,8 +20,15 @@ class Repository with _$Repository {
     required RepositoryOwner owner,
 
     /// Whether the repository is private
-    required bool private, /// HTML URL to the repository on GitHub
-    @JsonKey(name: 'html_url') required String htmlUrl, /// Repository description (optional)
+    required bool private,
+
+    /// HTML URL to the repository on GitHub
+    @JsonKey(name: 'html_url') required String htmlUrl,
+
+    /// Default branch name (e.g., "main", "master")
+    @JsonKey(name: 'default_branch') required String defaultBranch,
+
+    /// Repository description (optional)
     String? description,
   }) = _Repository;
 

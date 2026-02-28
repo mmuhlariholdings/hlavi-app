@@ -57,8 +57,8 @@ class RepositorySelector extends ConsumerWidget {
               onChanged: (Repository? repo) {
                 if (repo != null) {
                   ref.read(selectedRepositoryProvider.notifier).state = repo;
-                  // Reset branch selection when repository changes
-                  ref.read(selectedBranchProvider.notifier).state = null;
+                  // Set default branch when repository changes
+                  ref.read(selectedBranchProvider.notifier).state = repo.defaultBranch;
                 }
               },
             ),
