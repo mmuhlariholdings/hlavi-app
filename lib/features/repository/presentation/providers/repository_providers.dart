@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
@@ -12,23 +14,38 @@ final repositoryDataSourceProvider = Provider<RepositoryRemoteDataSource>((ref) 
 
 /// Provider for fetching user's repositories
 /// Auto-refreshes when auth state changes
+/// Cached for 5 minutes to reduce API calls
 final repositoriesProvider = FutureProvider<List<Repository>>((ref) async {
+  // Keep alive for 5 minutes to cache results
+  final link = ref.keepAlive();
+  Timer(const Duration(minutes: 5), link.close);
+
   final dataSource = ref.watch(repositoryDataSourceProvider);
   return dataSource.getRepositories();
 });
 
 /// Provider for fetching branches of a specific repository
 /// Takes owner and repo as parameters
+/// Cached for 5 minutes per repository
 final branchesProvider = FutureProvider.family<List<String>, ({String owner, String repo})>(
   (ref, params) async {
+    // Keep alive for 5 minutes to cache results
+    final link = ref.keepAlive();
+    Timer(const Duration(minutes: 5), link.close);
+
     final dataSource = ref.watch(repositoryDataSourceProvider);
     return dataSource.getBranches(params.owner, params.repo);
   },
 );
 
 /// Provider for checking if a repository has .hlavi directory
+/// Cached for 5 minutes per repo/branch combination
 final hasHlaviDirectoryProvider = FutureProvider.family<bool, ({String owner, String repo, String? branch})>(
   (ref, params) async {
+    // Keep alive for 5 minutes to cache results
+    final link = ref.keepAlive();
+    Timer(const Duration(minutes: 5), link.close);
+
     final dataSource = ref.watch(repositoryDataSourceProvider);
     return dataSource.hasHlaviDirectory(
       params.owner,

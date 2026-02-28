@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hlavi_app/core/routing/routes.dart';
 import 'package:hlavi_app/features/auth/presentation/screens/login_screen.dart';
-import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_test_screen.dart';
+import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 /// Application router configuration
 /// Handles navigation and route guards
@@ -21,11 +21,11 @@ class AppRouter {
           builder: (context, state) => const LoginScreen(),
         ),
 
-        // Dashboard Route - API test screen to verify Phase 2 implementation
+        // Dashboard Route - Main dashboard with statistics and repo management
         GoRoute(
           path: Routes.dashboard,
           name: 'dashboard',
-          builder: (context, state) => const DashboardTestScreen(),
+          builder: (context, state) => const DashboardScreen(),
         ),
 
         // Board Route (placeholder - will be implemented in Phase 4)

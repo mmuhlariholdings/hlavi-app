@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
@@ -13,7 +15,12 @@ final taskDataSourceProvider = Provider<TaskRemoteDataSource>((ref) {
 
 /// Provider for fetching tasks from selected repository
 /// Automatically refetches when repository or branch selection changes
+/// Cached for 1 minute to avoid unnecessary re-fetching
 final tasksProvider = FutureProvider<List<Task>>((ref) async {
+  // Keep alive for 1 minute to cache results
+  final link = ref.keepAlive();
+  Timer(const Duration(minutes: 1), link.close);
+
   final dataSource = ref.watch(taskDataSourceProvider);
   final selectedRepo = ref.watch(selectedRepositoryProvider);
   final selectedBranch = ref.watch(selectedBranchProvider);
