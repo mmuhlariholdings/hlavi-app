@@ -5,6 +5,7 @@ import 'package:hlavi_app/features/agenda/presentation/screens/agenda_screen.dar
 import 'package:hlavi_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:hlavi_app/features/board/presentation/screens/board_screen.dart';
 import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:hlavi_app/features/tasks/presentation/screens/task_detail_screen.dart';
 import 'package:hlavi_app/features/timeline/presentation/screens/timeline_screen.dart';
 import 'package:hlavi_app/shared/widgets/app_bottom_navigation.dart';
 
@@ -83,10 +84,7 @@ class AppRouter {
           name: 'taskDetail',
           builder: (context, state) {
             final taskId = state.pathParameters['id'] ?? '';
-            return _PlaceholderScreen(
-              title: 'Task Detail',
-              description: 'Task ID: $taskId',
-            );
+            return TaskDetailScreen(taskId: taskId);
           },
         ),
       ],
@@ -137,76 +135,5 @@ class AppRouter {
         ),
       ),
     );
-  }
-}
-
-/// Placeholder screen for routes not yet implemented
-/// Used during development to show where features will be added
-class _PlaceholderScreen extends StatelessWidget {
-
-  const _PlaceholderScreen({
-    required this.title,
-    required this.description,
-  });
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Coming soon in Phase ${_getPhaseNumber(title)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
-                    fontStyle: FontStyle.italic,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getPhaseNumber(String title) {
-    switch (title) {
-      case 'Dashboard':
-      case 'Repositories':
-        return '3';
-      case 'Board':
-        return '4';
-      case 'Task Detail':
-        return '5';
-      case 'Timeline':
-        return '6';
-      case 'Agenda':
-        return '7';
-      default:
-        return '?';
-    }
   }
 }

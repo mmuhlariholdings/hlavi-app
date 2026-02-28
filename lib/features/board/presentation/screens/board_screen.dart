@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../shared/widgets/repository_selector.dart';
 import '../../../../shared/widgets/branch_selector.dart';
@@ -151,10 +152,7 @@ class _BoardContent extends ConsumerWidget {
                     tasks: tasks,
                     width: columnWidth,
                     onTaskTap: (task) {
-                      // TODO: Navigate to task detail
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tapped task: ${task.id}')),
-                      );
+                      context.push('/tasks/${task.id}');
                     },
                   );
                 },
