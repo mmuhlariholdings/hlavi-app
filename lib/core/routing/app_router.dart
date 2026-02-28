@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hlavi_app/core/routing/routes.dart';
+import 'package:hlavi_app/features/agenda/presentation/screens/agenda_screen.dart';
 import 'package:hlavi_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:hlavi_app/features/board/presentation/screens/board_screen.dart';
 import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:hlavi_app/features/timeline/presentation/screens/timeline_screen.dart';
+import 'package:hlavi_app/shared/widgets/app_bottom_navigation.dart';
 
 /// Application router configuration
 /// Handles navigation and route guards
@@ -21,44 +25,59 @@ class AppRouter {
           builder: (context, state) => const LoginScreen(),
         ),
 
-        // Dashboard Route - Main dashboard with statistics and repo management
-        GoRoute(
-          path: Routes.dashboard,
-          name: 'dashboard',
-          builder: (context, state) => const DashboardScreen(),
+        // Main app shell with bottom navigation
+        ShellRoute(
+          builder: (context, state, child) {
+            // Determine current index based on location
+            final location = state.uri.path;
+            int currentIndex = 0;
+            if (location.startsWith('/board')) {
+              currentIndex = 1;
+            } else if (location.startsWith('/timeline')) {
+              currentIndex = 2;
+            } else if (location.startsWith('/agenda')) {
+              currentIndex = 3;
+            }
+
+            return Scaffold(
+              body: child,
+              bottomNavigationBar: AppBottomNavigation(
+                currentIndex: currentIndex,
+              ),
+            );
+          },
+          routes: [
+            // Dashboard Route - Main dashboard with statistics and repo management
+            GoRoute(
+              path: Routes.dashboard,
+              name: 'dashboard',
+              builder: (context, state) => const DashboardScreen(),
+            ),
+
+            // Board Route - Kanban board view
+            GoRoute(
+              path: Routes.board,
+              name: 'board',
+              builder: (context, state) => const BoardScreen(),
+            ),
+
+            // Timeline Route - Gantt chart timeline view
+            GoRoute(
+              path: Routes.timeline,
+              name: 'timeline',
+              builder: (context, state) => const TimelineScreen(),
+            ),
+
+            // Agenda Route - Date-filtered task view
+            GoRoute(
+              path: Routes.agenda,
+              name: 'agenda',
+              builder: (context, state) => const AgendaScreen(),
+            ),
+          ],
         ),
 
-        // Board Route (placeholder - will be implemented in Phase 4)
-        GoRoute(
-          path: Routes.board,
-          name: 'board',
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Board',
-            description: 'Kanban board view',
-          ),
-        ),
-
-        // Timeline Route (placeholder - will be implemented in Phase 6)
-        GoRoute(
-          path: Routes.timeline,
-          name: 'timeline',
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Timeline',
-            description: 'Gantt chart timeline view',
-          ),
-        ),
-
-        // Agenda Route (placeholder - will be implemented in Phase 7)
-        GoRoute(
-          path: Routes.agenda,
-          name: 'agenda',
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Agenda',
-            description: 'Date-filtered task view',
-          ),
-        ),
-
-        // Task Detail Route (placeholder - will be implemented in Phase 5)
+        // Task Detail Route (outside shell - no bottom nav)
         GoRoute(
           path: Routes.taskDetail,
           name: 'taskDetail',
@@ -69,16 +88,6 @@ class AppRouter {
               description: 'Task ID: $taskId',
             );
           },
-        ),
-
-        // Repository Selection Route (placeholder - will be implemented in Phase 3)
-        GoRoute(
-          path: Routes.repositories,
-          name: 'repositories',
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Repositories',
-            description: 'Select a repository',
-          ),
         ),
       ],
 
