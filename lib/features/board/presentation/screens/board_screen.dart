@@ -6,7 +6,6 @@ import '../../../../shared/widgets/branch_selector.dart';
 import '../../../repository/presentation/providers/repository_providers.dart';
 import '../../../repository/presentation/providers/board_providers.dart';
 import '../../../tasks/presentation/providers/task_providers.dart';
-import '../providers/column_collapse_provider.dart';
 import '../widgets/kanban_column.dart';
 
 /// Kanban board view
@@ -122,7 +121,10 @@ class _BoardContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(tasksProvider);
     final boardConfigAsync = ref.watch(currentBoardConfigProvider);
-    final collapseState = ref.watch(columnCollapseProvider);
+
+    // Calculate column width: 85% of screen width to show hint of next column
+    final screenWidth = MediaQuery.of(context).size.width;
+    final columnWidth = screenWidth * 0.85;
 
     return tasksAsync.when(
       data: (tasks) {
@@ -137,39 +139,25 @@ class _BoardContent extends ConsumerWidget {
                 ref.invalidate(tasksProvider);
                 ref.invalidate(currentBoardConfigProvider);
               },
-              child: Column(
-                children: [
-                  // Board controls
-                  _buildControls(context, ref),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.all(16),
+                itemCount: boardConfig.columns.length,
+                itemBuilder: (context, index) {
+                  final column = boardConfig.columns[index];
 
-                  // Horizontal scrolling columns
-                  Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: boardConfig.columns.length,
-                      itemBuilder: (context, index) {
-                        final column = boardConfig.columns[index];
-                        final isCollapsed = collapseState[column.status] ?? false;
-
-                        return KanbanColumn(
-                          column: column,
-                          tasks: tasks,
-                          isCollapsed: isCollapsed,
-                          onToggleCollapse: () {
-                            ref.read(columnCollapseProvider.notifier).toggle(column.status);
-                          },
-                          onTaskTap: (task) {
-                            // TODO: Navigate to task detail
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Tapped task: ${task.id}')),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  return KanbanColumn(
+                    column: column,
+                    tasks: tasks,
+                    width: columnWidth,
+                    onTaskTap: (task) {
+                      // TODO: Navigate to task detail
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Tapped task: ${task.id}')),
+                      );
+                    },
+                  );
+                },
               ),
             );
           },
@@ -189,56 +177,6 @@ class _BoardContent extends ConsumerWidget {
             Text('Error loading tasks: $error'),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildControls(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Board',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  ref.read(columnCollapseProvider.notifier).expandAll();
-                },
-                icon: const Icon(Icons.unfold_more, size: 18),
-                label: const Text('Expand All'),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () {
-                  ref.read(columnCollapseProvider.notifier).collapseAll();
-                },
-                icon: const Icon(Icons.unfold_less, size: 18),
-                label: const Text('Collapse All'),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
