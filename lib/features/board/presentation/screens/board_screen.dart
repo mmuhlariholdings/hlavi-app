@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/repository_selector.dart';
-import '../../../../shared/widgets/branch_selector.dart';
+import '../../../../shared/widgets/repository_breadcrumb.dart';
 import '../../../repository/presentation/providers/repository_providers.dart';
 import '../../../repository/presentation/providers/board_providers.dart';
 import '../../../tasks/domain/entities/task.dart';
@@ -35,22 +34,12 @@ class BoardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Board'),
+        // Repository breadcrumb and progress indicator
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(isUpdating ? 122 : 120),
+          preferredSize: Size.fromHeight(isUpdating ? 62 : 60),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  children: [
-                    const RepositorySelector(),
-                    const SizedBox(height: 8),
-                    if (selectedRepo != null) const BranchSelector(),
-                  ],
-                ),
-              ),
-              // Sleek progress indicator at the bottom
+              const RepositoryBreadcrumb(),
               if (isUpdating)
                 const SizedBox(
                   height: 2,

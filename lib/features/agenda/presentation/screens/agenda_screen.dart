@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/widgets/repository_breadcrumb.dart';
 import '../../../../shared/widgets/task_card.dart';
 import '../../../repository/presentation/providers/repository_providers.dart';
 import '../../../tasks/domain/entities/task.dart';
@@ -27,13 +28,20 @@ class AgendaScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agenda'),
-        // Sleek progress indicator at the bottom of the app bar
-        bottom: isUpdating
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(2),
-                child: LinearProgressIndicator(minHeight: 2),
-              )
-            : null,
+        // Repository breadcrumb and progress indicator
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(isUpdating ? 62 : 60),
+          child: Column(
+            children: [
+              const RepositoryBreadcrumb(),
+              if (isUpdating)
+                const SizedBox(
+                  height: 2,
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
+            ],
+          ),
+        ),
       ),
       body: selectedRepo == null
           ? _buildEmptyState(

@@ -13,60 +13,103 @@ class DateSelector extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final notifier = ref.read(selectedDateProvider.notifier);
 
+    // Determine which period is selected
+    var selectedPeriod = 'custom';
+    if (_isToday(selectedDate)) {
+      selectedPeriod = 'today';
+    } else if (_isTomorrow(selectedDate)) {
+      selectedPeriod = 'tomorrow';
+    } else if (_isThisWeek(selectedDate)) {
+      selectedPeriod = 'this_week';
+    } else if (_isThisMonth(selectedDate)) {
+      selectedPeriod = 'this_month';
+    }
+
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            // Current selected date display
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  DateFormat('EEEE, MMMM d, y').format(selectedDate),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'SpaceGrotesk',
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.calendar_today, size: 20),
-                  onPressed: () => _showCustomDatePicker(context, notifier),
-                  tooltip: 'Pick custom date',
-                ),
-              ],
+            // Calendar icon
+            Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(width: 12),
 
-            // Quick date selection buttons
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _QuickDateChip(
-                  label: 'Today',
-                  onPressed: () => notifier.setToday(),
-                  isSelected: _isToday(selectedDate),
+            // Date period dropdown
+            Expanded(
+              child: DropdownButton<String>(
+                value: selectedPeriod,
+                isExpanded: true,
+                isDense: true,
+                underline: const SizedBox.shrink(),
+                icon: const Icon(Icons.arrow_drop_down, size: 20),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontFamily: 'SpaceGrotesk',
                 ),
-                _QuickDateChip(
-                  label: 'Tomorrow',
-                  onPressed: () => notifier.setTomorrow(),
-                  isSelected: _isTomorrow(selectedDate),
-                ),
-                _QuickDateChip(
-                  label: 'This Week',
-                  onPressed: () => notifier.setThisWeek(),
-                  isSelected: _isThisWeek(selectedDate),
-                ),
-                _QuickDateChip(
-                  label: 'This Month',
-                  onPressed: () => notifier.setThisMonth(),
-                  isSelected: _isThisMonth(selectedDate),
-                ),
-              ],
+                items: const [
+                  DropdownMenuItem(
+                    value: 'today',
+                    child: Text('Today'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'tomorrow',
+                    child: Text('Tomorrow'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'this_week',
+                    child: Text('This Week'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'this_month',
+                    child: Text('This Month'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'custom',
+                    child: Text('Custom Date'),
+                  ),
+                ],
+                onChanged: (String? period) {
+                  if (period == null) {
+                    return;
+                  }
+
+                  switch (period) {
+                    case 'today':
+                      notifier.setToday();
+                      break;
+                    case 'tomorrow':
+                      notifier.setTomorrow();
+                      break;
+                    case 'this_week':
+                      notifier.setThisWeek();
+                      break;
+                    case 'this_month':
+                      notifier.setThisMonth();
+                      break;
+                    case 'custom':
+                      _showCustomDatePicker(context, notifier);
+                      break;
+                  }
+                },
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Current date display
+            Text(
+              DateFormat('MMM d, y').format(selectedDate),
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontFamily: 'SpaceGrotesk',
+              ),
             ),
           ],
         ),
@@ -115,29 +158,5 @@ class DateSelector extends ConsumerWidget {
   bool _isThisMonth(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year && date.month == now.month && date.day == 1;
-  }
-}
-
-/// Quick date selection chip
-class _QuickDateChip extends StatelessWidget {
-  const _QuickDateChip({
-    required this.label,
-    required this.onPressed,
-    required this.isSelected,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onPressed(),
-      selectedColor: Theme.of(context).colorScheme.primaryContainer,
-      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-    );
   }
 }

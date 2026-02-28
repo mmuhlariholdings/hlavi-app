@@ -21,7 +21,18 @@ final repositoriesProvider = FutureProvider<List<Repository>>((ref) async {
   Timer(const Duration(minutes: 5), link.close);
 
   final dataSource = ref.watch(repositoryDataSourceProvider);
-  return dataSource.getRepositories();
+  final repositories = await dataSource.getRepositories();
+
+  // Sort alphabetically by organization name first, then by repository name
+  repositories.sort((a, b) {
+    final ownerComparison = a.owner.login.toLowerCase().compareTo(b.owner.login.toLowerCase());
+    if (ownerComparison != 0) {
+      return ownerComparison;
+    }
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  });
+
+  return repositories;
 });
 
 /// Provider for fetching branches of a specific repository
@@ -34,7 +45,12 @@ final branchesProvider = FutureProvider.family<List<String>, ({String owner, Str
     Timer(const Duration(minutes: 5), link.close);
 
     final dataSource = ref.watch(repositoryDataSourceProvider);
-    return dataSource.getBranches(params.owner, params.repo);
+    final branches = await dataSource.getBranches(params.owner, params.repo);
+
+    // Sort branches alphabetically (case-insensitive)
+    branches.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    return branches;
   },
 );
 

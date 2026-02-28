@@ -46,7 +46,7 @@ class RepositorySelector extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          repo.name,
+                          '${repo.owner.login}/${repo.name}',
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
