@@ -24,38 +24,41 @@ class TaskRemoteDataSource {
         ref: branch,
       );
 
-      // Fetch content of each task file and parse
-      final tasks = <Task>[];
-      for (final file in taskFiles) {
-        if (file.name.endsWith('.json')) {
-          try {
-            final content = await _apiClient.getFileContent(
-              owner,
-              repo,
-              file.path,
-              ref: branch,
-            );
+      // Filter to only JSON files
+      final jsonFiles = taskFiles.where((file) => file.name.endsWith('.json')).toList();
 
-            // Decode base64 content
-            if (content.content == null) {
-              continue;
-            }
+      // Fetch all task files in parallel for much better performance
+      final taskFutures = jsonFiles.map((file) async {
+        try {
+          final content = await _apiClient.getFileContent(
+            owner,
+            repo,
+            file.path,
+            ref: branch,
+          );
 
-            // Remove whitespace from base64 string (GitHub API adds newlines/spaces)
-            final cleanedContent = content.content!.replaceAll(RegExp(r'\s'), '');
-            final decoded = utf8.decode(base64.decode(cleanedContent));
-            final json = jsonDecode(decoded) as Map<String, dynamic>;
-
-            final task = Task.fromJson(json);
-            tasks.add(task);
-          } catch (e) {
-            // Skip malformed task files
-            continue;
+          // Decode base64 content
+          if (content.content == null) {
+            return null;
           }
-        }
-      }
 
-      return tasks;
+          // Remove whitespace from base64 string (GitHub API adds newlines/spaces)
+          final cleanedContent = content.content!.replaceAll(RegExp(r'\s'), '');
+          final decoded = utf8.decode(base64.decode(cleanedContent));
+          final json = jsonDecode(decoded) as Map<String, dynamic>;
+
+          return Task.fromJson(json);
+        } catch (e) {
+          // Skip malformed task files
+          return null;
+        }
+      }).toList();
+
+      // Wait for all fetches to complete in parallel
+      final results = await Future.wait(taskFutures);
+
+      // Filter out nulls (failed fetches) and return
+      return results.whereType<Task>().toList();
     } catch (e) {
       // If .hlavi/tasks doesn't exist, return empty list
       if (e.toString().contains('404')) {

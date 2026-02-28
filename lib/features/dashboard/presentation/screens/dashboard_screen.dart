@@ -18,6 +18,14 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedRepo = ref.watch(selectedRepositoryProvider);
     final selectedBranch = ref.watch(selectedBranchProvider);
+    final mutationState = ref.watch(taskMutationsProvider);
+    final repositoriesAsync = ref.watch(repositoriesProvider);
+    final tasksAsync = selectedRepo != null ? ref.watch(tasksProvider) : null;
+
+    // Show progress indicator when loading or mutating
+    final isUpdating = mutationState.isLoading ||
+        repositoriesAsync.isLoading ||
+        (tasksAsync?.isLoading ?? false);
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +38,13 @@ class DashboardScreen extends ConsumerWidget {
             },
           ),
         ],
+        // Sleek progress indicator at the bottom of the app bar
+        bottom: isUpdating
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(2),
+                child: LinearProgressIndicator(minHeight: 2),
+              )
+            : null,
       ),
       body: RefreshIndicator(
         onRefresh: () async {

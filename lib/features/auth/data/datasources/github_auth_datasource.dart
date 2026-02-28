@@ -92,8 +92,14 @@ class GithubAuthDataSource {
   /// Returns null if no token is stored
   Future<AuthToken?> getStoredToken() async {
     try {
-      final accessToken = await _secureStorage.read(key: _accessTokenKey);
-      final tokenType = await _secureStorage.read(key: _tokenTypeKey);
+      // Read both values in parallel for better performance
+      final results = await Future.wait([
+        _secureStorage.read(key: _accessTokenKey),
+        _secureStorage.read(key: _tokenTypeKey),
+      ]);
+
+      final accessToken = results[0];
+      final tokenType = results[1];
 
       if (accessToken == null) {
         return null;
@@ -110,20 +116,26 @@ class GithubAuthDataSource {
 
   /// Store authentication token securely
   Future<void> _storeToken(AuthToken token) async {
-    await _secureStorage.write(
-      key: _accessTokenKey,
-      value: token.accessToken,
-    );
-    await _secureStorage.write(
-      key: _tokenTypeKey,
-      value: token.tokenType,
-    );
+    // Write both values in parallel for better performance
+    await Future.wait([
+      _secureStorage.write(
+        key: _accessTokenKey,
+        value: token.accessToken,
+      ),
+      _secureStorage.write(
+        key: _tokenTypeKey,
+        value: token.tokenType,
+      ),
+    ]);
   }
 
   /// Clear stored authentication token
   Future<void> signOut() async {
-    await _secureStorage.delete(key: _accessTokenKey);
-    await _secureStorage.delete(key: _tokenTypeKey);
+    // Delete both values in parallel for better performance
+    await Future.wait([
+      _secureStorage.delete(key: _accessTokenKey),
+      _secureStorage.delete(key: _tokenTypeKey),
+    ]);
   }
 
   /// Check if user is authenticated (has a stored token)

@@ -28,6 +28,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksProvider);
+    final mutationState = ref.watch(taskMutationsProvider);
+
+    // Show progress indicator when saving or refreshing
+    final isUpdating = mutationState.isLoading || tasksAsync.isLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -52,6 +56,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               child: const Text('Cancel'),
             ),
         ],
+        // Sleek progress indicator at the bottom of the app bar
+        bottom: isUpdating
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(2),
+                child: LinearProgressIndicator(minHeight: 2),
+              )
+            : null,
       ),
       body: tasksAsync.when(
         data: (tasks) {
@@ -81,37 +92,33 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
   Future<void> _handleSave(Task updatedTask) async {
     try {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saving task...')),
-      );
-
-      // Update task
+      // Update task (optimistic update)
       await ref.read(taskMutationsProvider.notifier).saveTask(
         updatedTask,
         commitMessage: 'Update task ${updatedTask.id}',
       );
 
+      // Exit edit mode immediately - tasks will refresh in background
       if (mounted) {
         setState(() {
           _isEditing = false;
         });
 
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Task updated successfully'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating task: $e'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -120,13 +127,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 }
 
 /// Read-only view of task details
-class _ReadOnlyTaskView extends StatelessWidget {
+class _ReadOnlyTaskView extends ConsumerWidget {
   const _ReadOnlyTaskView({required this.task});
 
   final Task task;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final completedAC = task.acceptanceCriteria.where((ac) => ac.completed).length;
     final totalAC = task.acceptanceCriteria.length;
 
@@ -251,30 +258,33 @@ class _ReadOnlyTaskView extends StatelessWidget {
             ...task.acceptanceCriteria.map((ac) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      ac.completed
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      size: 20,
-                      color: ac.completed ? Colors.green : Colors.grey,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        ac.description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          decoration: ac.completed
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: ac.completed ? Colors.grey : Colors.black,
+                child: InkWell(
+                  onTap: () => _toggleAcceptanceCriteria(ref, ac),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        ac.completed
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                        color: ac.completed ? Colors.green : Colors.grey,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          ac.description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            decoration: ac.completed
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: ac.completed ? Colors.grey : Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }),
@@ -354,6 +364,34 @@ class _ReadOnlyTaskView extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('MMM d, y').format(date);
+  }
+
+  Future<void> _toggleAcceptanceCriteria(WidgetRef ref, AcceptanceCriteria ac) async {
+    // Update the acceptance criteria
+    final updatedCriteria = task.acceptanceCriteria.map((criteria) {
+      if (criteria.id == ac.id) {
+        return criteria.copyWith(
+          completed: !criteria.completed,
+          completedAt: !criteria.completed ? DateTime.now() : null,
+        );
+      }
+      return criteria;
+    }).toList();
+
+    final updatedTask = task.copyWith(
+      acceptanceCriteria: updatedCriteria,
+      updatedAt: DateTime.now(),
+    );
+
+    try {
+      // Save task - mutation provider will invalidate and refresh in background
+      await ref.read(taskMutationsProvider.notifier).saveTask(
+        updatedTask,
+        commitMessage: 'Toggle acceptance criteria for task ${task.id}',
+      );
+    } catch (e) {
+      // Error handling is done by the mutations provider
+    }
   }
 }
 

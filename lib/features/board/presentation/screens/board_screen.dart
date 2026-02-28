@@ -6,6 +6,7 @@ import '../../../../shared/widgets/repository_selector.dart';
 import '../../../../shared/widgets/branch_selector.dart';
 import '../../../repository/presentation/providers/repository_providers.dart';
 import '../../../repository/presentation/providers/board_providers.dart';
+import '../../../tasks/domain/entities/task.dart';
 import '../../../tasks/presentation/providers/task_providers.dart';
 import '../widgets/kanban_column.dart';
 
@@ -18,6 +19,8 @@ class BoardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedRepo = ref.watch(selectedRepositoryProvider);
     final selectedBranch = ref.watch(selectedBranchProvider);
+    final mutationState = ref.watch(taskMutationsProvider);
+    final tasksAsync = selectedRepo != null ? ref.watch(tasksProvider) : const AsyncValue.data(<Task>[]);
     final hasHlaviAsync = selectedRepo != null
         ? ref.watch(hasHlaviDirectoryProvider((
             owner: selectedRepo.owner.login,
@@ -26,20 +29,34 @@ class BoardScreen extends ConsumerWidget {
           )))
         : const AsyncValue.data(false);
 
+    // Show progress indicator when saving or refreshing
+    final isUpdating = mutationState.isLoading || tasksAsync.isLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Board'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              children: [
-                const RepositorySelector(),
-                const SizedBox(height: 8),
-                if (selectedRepo != null) const BranchSelector(),
-              ],
-            ),
+          preferredSize: Size.fromHeight(isUpdating ? 122 : 120),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  children: [
+                    const RepositorySelector(),
+                    const SizedBox(height: 8),
+                    if (selectedRepo != null) const BranchSelector(),
+                  ],
+                ),
+              ),
+              // Sleek progress indicator at the bottom
+              if (isUpdating)
+                const SizedBox(
+                  height: 2,
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
+            ],
           ),
         ),
       ),
@@ -120,6 +137,17 @@ class _BoardContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Listen to mutation state and refresh tasks when complete
+    ref.listen(taskMutationsProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          // Only refresh if previous state was loading (mutation just completed)
+          if (previous?.isLoading == true) {
+            ref.invalidate(tasksProvider);
+          }
+        },
+      );
+    });
     final tasksAsync = ref.watch(tasksProvider);
     final boardConfigAsync = ref.watch(currentBoardConfigProvider);
 

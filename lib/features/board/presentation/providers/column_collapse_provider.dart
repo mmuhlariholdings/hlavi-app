@@ -55,26 +55,42 @@ class ColumnCollapseNotifier extends StateNotifier<Map<TaskStatus, bool>> {
   /// Expand all columns
   Future<void> expandAll() async {
     final newState = <TaskStatus, bool>{};
+    final futures = <Future<void>>[];
+
     for (final status in TaskStatus.values) {
       newState[status] = false;
       if (_prefs != null) {
         final key = _keyPrefix + status.name;
-        await _prefs!.setBool(key, false);
+        futures.add(_prefs!.setBool(key, false));
       }
     }
+
+    // Write all preferences in parallel for better performance
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+
     state = newState;
   }
 
   /// Collapse all columns
   Future<void> collapseAll() async {
     final newState = <TaskStatus, bool>{};
+    final futures = <Future<void>>[];
+
     for (final status in TaskStatus.values) {
       newState[status] = true;
       if (_prefs != null) {
         final key = _keyPrefix + status.name;
-        await _prefs!.setBool(key, true);
+        futures.add(_prefs!.setBool(key, true));
       }
     }
+
+    // Write all preferences in parallel for better performance
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+
     state = newState;
   }
 }

@@ -15,11 +15,11 @@ final taskDataSourceProvider = Provider<TaskRemoteDataSource>((ref) {
 
 /// Provider for fetching tasks from selected repository
 /// Automatically refetches when repository or branch selection changes
-/// Cached for 1 minute to avoid unnecessary re-fetching
-final tasksProvider = FutureProvider<List<Task>>((ref) async {
-  // Keep alive for 1 minute to cache results
+/// Cached briefly to avoid excessive refetching during navigation
+final tasksProvider = FutureProvider.autoDispose<List<Task>>((ref) async {
+  // Keep alive for 5 seconds to avoid refetching on every navigation
   final link = ref.keepAlive();
-  Timer(const Duration(minutes: 1), link.close);
+  Timer(const Duration(seconds: 5), link.close);
 
   final dataSource = ref.watch(taskDataSourceProvider);
   final selectedRepo = ref.watch(selectedRepositoryProvider);
@@ -87,7 +87,7 @@ class TaskMutationsNotifier extends StateNotifier<AsyncValue<void>> {
         commitMessage: commitMessage,
       );
 
-      // Invalidate tasks to trigger refetch
+      // Refresh tasks to immediately fetch new data
       _ref.invalidate(tasksProvider);
 
       state = const AsyncValue.data(null);
@@ -121,7 +121,7 @@ class TaskMutationsNotifier extends StateNotifier<AsyncValue<void>> {
         commitMessage: commitMessage,
       );
 
-      // Invalidate tasks to trigger refetch
+      // Refresh tasks to immediately fetch new data
       _ref.invalidate(tasksProvider);
 
       state = const AsyncValue.data(null);
