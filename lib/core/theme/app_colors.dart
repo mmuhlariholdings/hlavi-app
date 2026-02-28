@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 /// App color palette
 /// Inspired by Shopify design system with clean, modern colors
 class AppColors {
+
+  AppColors._();
   // Primary Colors
   static const Color primary = Color(0xFF5C6AC4); // Shopify purple
   static const Color primaryDark = Color(0xFF202E78);
@@ -46,6 +48,4 @@ class AppColors {
 
   // Shadow
   static const Color shadow = Color(0x1A000000);
-
-  AppColors._();
 }

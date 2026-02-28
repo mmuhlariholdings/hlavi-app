@@ -17,24 +17,14 @@ class Task with _$Task {
     /// Task title/name
     required String title,
 
-    /// Detailed description of the task (optional)
-    String? description,
-
     /// Current status of the task
-    required TaskStatus status,
-
-    /// List of acceptance criteria that must be met
+    required TaskStatus status, /// List of acceptance criteria that must be met
     @JsonKey(name: 'acceptance_criteria')
-    required List<AcceptanceCriteria> acceptanceCriteria,
-
-    /// When the task was created
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-
-    /// When the task was last updated
-    @JsonKey(name: 'updated_at') required DateTime updatedAt,
-
-    /// Whether an AI agent is assigned to this task
-    @JsonKey(name: 'agent_assigned') required bool agentAssigned,
+    required List<AcceptanceCriteria> acceptanceCriteria, /// When the task was created
+    @JsonKey(name: 'created_at') required DateTime createdAt, /// When the task was last updated
+    @JsonKey(name: 'updated_at') required DateTime updatedAt, /// Whether an AI agent is assigned to this task
+    @JsonKey(name: 'agent_assigned') required bool agentAssigned, /// Detailed description of the task (optional)
+    String? description,
 
     /// Reason for rejection if task was rejected
     @JsonKey(name: 'rejection_reason') String? rejectionReason,
@@ -53,7 +43,7 @@ class Task with _$Task {
 extension TaskExtension on Task {
   /// Calculate the completion percentage based on acceptance criteria
   double get completionPercentage {
-    if (acceptanceCriteria.isEmpty) return 0.0;
+    if (acceptanceCriteria.isEmpty) return 0;
     final completed =
         acceptanceCriteria.where((ac) => ac.completed).length;
     return completed / acceptanceCriteria.length;

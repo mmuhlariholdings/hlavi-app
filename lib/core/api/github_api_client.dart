@@ -7,9 +7,9 @@ import 'models/github_content.dart';
 /// GitHub API client using Dio directly
 /// Provides type-safe methods for GitHub API endpoints
 class GithubApiClient {
-  final Dio _dio;
 
   GithubApiClient(this._dio);
+  final Dio _dio;
 
   /// Get authenticated user's repositories
   Future<List<Repository>> getRepositories({

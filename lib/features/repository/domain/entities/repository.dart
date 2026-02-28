@@ -19,14 +19,10 @@ class Repository with _$Repository {
     /// Repository owner information
     required RepositoryOwner owner,
 
-    /// Repository description (optional)
-    String? description,
-
     /// Whether the repository is private
-    required bool private,
-
-    /// HTML URL to the repository on GitHub
-    @JsonKey(name: 'html_url') required String htmlUrl,
+    required bool private, /// HTML URL to the repository on GitHub
+    @JsonKey(name: 'html_url') required String htmlUrl, /// Repository description (optional)
+    String? description,
   }) = _Repository;
 
   factory Repository.fromJson(Map<String, dynamic> json) =>

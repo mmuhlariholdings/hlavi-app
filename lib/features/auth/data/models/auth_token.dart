@@ -31,14 +31,12 @@ class AuthUser with _$AuthUser {
     /// GitHub username/login
     required String login,
 
-    /// User's display name
+    /// User's avatar URL
+    @JsonKey(name: 'avatar_url') required String avatarUrl, /// User's display name
     String? name,
 
     /// User's email address
     String? email,
-
-    /// User's avatar URL
-    @JsonKey(name: 'avatar_url') required String avatarUrl,
   }) = _AuthUser;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) =>
@@ -49,14 +47,12 @@ class AuthUser with _$AuthUser {
 @freezed
 class AuthState with _$AuthState {
   const factory AuthState({
-    /// Authentication token
+    /// Whether the user is authenticated
+    required bool isAuthenticated, /// Authentication token
     AuthToken? token,
 
     /// Authenticated user information
     AuthUser? user,
-
-    /// Whether the user is authenticated
-    required bool isAuthenticated,
 
     /// Loading state
     @Default(false) bool isLoading,

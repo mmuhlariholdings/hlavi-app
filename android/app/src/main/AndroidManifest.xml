@@ -27,15 +27,19 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
 
-            <!-- OAuth Redirect Intent Filter -->
-            <!-- This handles the callback from GitHub OAuth -->
+        <!-- Redirect handler for OAuth callback -->
+        <activity
+            android:name=".RedirectUriReceiverActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- URL Scheme: app.hlavi://oauth-callback -->
-                <data android:scheme="app.hlavi" android:host="oauth-callback" />
+                <data
+                    android:scheme="app.hlavi"
+                    android:host="oauth-callback" />
             </intent-filter>
         </activity>
 

@@ -4,9 +4,9 @@ import 'package:hlavi_app/features/auth/domain/repositories/auth_repository.dart
 
 /// Implementation of AuthRepository using GithubAuthDataSource
 class AuthRepositoryImpl implements AuthRepository {
-  final GithubAuthDataSource _dataSource;
 
   AuthRepositoryImpl(this._dataSource);
+  final GithubAuthDataSource _dataSource;
 
   @override
   Future<AuthToken> signIn() async {

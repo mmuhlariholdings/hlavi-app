@@ -26,11 +26,11 @@ final authStateProvider =
 /// Auth state notifier class
 /// Handles sign in, sign out, and session restoration
 class AuthStateNotifier extends StateNotifier<AuthState> {
-  final AuthRepository _repository;
 
   AuthStateNotifier(this._repository) : super(AuthState.initial()) {
     _checkAuthStatus();
   }
+  final AuthRepository _repository;
 
   /// Check if user has a stored token on app launch
   Future<void> _checkAuthStatus() async {

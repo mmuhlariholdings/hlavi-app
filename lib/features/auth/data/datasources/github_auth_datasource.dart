@@ -9,6 +9,12 @@ import '../models/auth_token.dart';
 /// Data source for GitHub OAuth authentication
 /// Handles the OAuth flow using flutter_appauth and stores tokens securely
 class GithubAuthDataSource {
+
+  GithubAuthDataSource({
+    FlutterAppAuth? appAuth,
+    FlutterSecureStorage? secureStorage,
+  })  : _appAuth = appAuth ?? const FlutterAppAuth(),
+        _secureStorage = secureStorage ?? const FlutterSecureStorage();
   final FlutterAppAuth _appAuth;
   final FlutterSecureStorage _secureStorage;
 
@@ -30,12 +36,6 @@ class GithubAuthDataSource {
   static const String _accessTokenKey = 'github_access_token';
   static const String _tokenTypeKey = 'github_token_type';
 
-  GithubAuthDataSource({
-    FlutterAppAuth? appAuth,
-    FlutterSecureStorage? secureStorage,
-  })  : _appAuth = appAuth ?? const FlutterAppAuth(),
-        _secureStorage = secureStorage ?? const FlutterSecureStorage();
-
   /// Sign in with GitHub OAuth
   /// Returns an AuthToken on success, throws an exception on failure
   Future<AuthToken> signIn() async {
@@ -48,11 +48,14 @@ class GithubAuthDataSource {
     }
 
     try {
+      // SECURITY: Not providing clientSecret makes flutter_appauth use PKCE
+      // (Proof Key for Code Exchange), which is the secure standard for mobile apps.
+      // PKCE generates a dynamic code_verifier instead of using a static secret.
       final result = await _appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
           EnvConfig.githubClientId,
           EnvConfig.githubRedirectUri,
-          clientSecret: EnvConfig.githubClientSecret,
+          // No clientSecret = PKCE is automatically used
           serviceConfiguration: const AuthorizationServiceConfiguration(
             authorizationEndpoint: _authorizationEndpoint,
             tokenEndpoint: _tokenEndpoint,

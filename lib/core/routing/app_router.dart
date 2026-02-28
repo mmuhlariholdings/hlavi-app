@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hlavi_app/core/routing/routes.dart';
 import 'package:hlavi_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_test_screen.dart';
 
 /// Application router configuration
 /// Handles navigation and route guards
@@ -20,14 +21,11 @@ class AppRouter {
           builder: (context, state) => const LoginScreen(),
         ),
 
-        // Dashboard Route (placeholder - will be implemented in Phase 3)
+        // Dashboard Route - API test screen to verify Phase 2 implementation
         GoRoute(
           path: Routes.dashboard,
           name: 'dashboard',
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Dashboard',
-            description: 'Statistics and repository overview',
-          ),
+          builder: (context, state) => const DashboardTestScreen(),
         ),
 
         // Board Route (placeholder - will be implemented in Phase 4)
@@ -136,13 +134,13 @@ class AppRouter {
 /// Placeholder screen for routes not yet implemented
 /// Used during development to show where features will be added
 class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  final String description;
 
   const _PlaceholderScreen({
     required this.title,
     required this.description,
   });
+  final String title;
+  final String description;
 
   @override
   Widget build(BuildContext context) {

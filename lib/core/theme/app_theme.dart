@@ -6,6 +6,8 @@ import 'app_colors.dart';
 /// Uses Material Design 3 with Space Grotesk font
 /// Inspired by Shopify and Shop app design
 class AppTheme {
+
+  AppTheme._();
   /// Light theme
   static ThemeData get lightTheme {
     return ThemeData(
@@ -341,6 +343,4 @@ class AppTheme {
       ),
     );
   }
-
-  AppTheme._();
 }

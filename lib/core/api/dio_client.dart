@@ -5,13 +5,13 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 /// Dio HTTP client configuration with interceptors
 /// Provides a configured Dio instance for API calls
 class DioClient {
+
+  DioClient({this.authToken});
   static const String _baseUrl = 'https://api.github.com';
   static const Duration _connectionTimeout = Duration(seconds: 30);
   static const Duration _receiveTimeout = Duration(seconds: 30);
 
   final String? authToken;
-
-  DioClient({this.authToken});
 
   /// Get configured Dio instance
   Dio get dio {
