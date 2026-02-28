@@ -31,11 +31,11 @@ class AppRouter {
             // Determine current index based on location
             final location = state.uri.path;
             int currentIndex = 0;
-            if (location.startsWith('/board')) {
+            if (location.startsWith('/agenda')) {
               currentIndex = 1;
-            } else if (location.startsWith('/timeline')) {
+            } else if (location.startsWith('/board')) {
               currentIndex = 2;
-            } else if (location.startsWith('/agenda')) {
+            } else if (location.startsWith('/timeline')) {
               currentIndex = 3;
             }
 

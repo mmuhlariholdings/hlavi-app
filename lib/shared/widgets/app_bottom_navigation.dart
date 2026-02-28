@@ -17,13 +17,13 @@ class AppBottomNavigation extends StatelessWidget {
         context.go('/dashboard');
         break;
       case 1:
-        context.go('/board');
+        context.go('/agenda');
         break;
       case 2:
-        context.go('/timeline');
+        context.go('/board');
         break;
       case 3:
-        context.go('/agenda');
+        context.go('/timeline');
         break;
     }
   }
@@ -40,6 +40,11 @@ class AppBottomNavigation extends StatelessWidget {
           label: 'Dashboard',
         ),
         NavigationDestination(
+          icon: Icon(Icons.calendar_today_outlined),
+          selectedIcon: Icon(Icons.calendar_today),
+          label: 'Agenda',
+        ),
+        NavigationDestination(
           icon: Icon(Icons.view_column_outlined),
           selectedIcon: Icon(Icons.view_column),
           label: 'Board',
@@ -48,11 +53,6 @@ class AppBottomNavigation extends StatelessWidget {
           icon: Icon(Icons.timeline_outlined),
           selectedIcon: Icon(Icons.timeline),
           label: 'Timeline',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.calendar_today_outlined),
-          selectedIcon: Icon(Icons.calendar_today),
-          label: 'Agenda',
         ),
       ],
     );

@@ -9,11 +9,11 @@ part 'board_config.g.dart';
 @freezed
 class BoardConfig with _$BoardConfig {
   const factory BoardConfig({
-    /// Board name
-    required String name,
-
     /// Column configuration for the Kanban board
-    required List<BoardColumn> columns,
+    @Default([]) List<BoardColumn> columns,
+
+    /// Board name (defaults to 'Board' if not provided)
+    @Default('Board') String name,
   }) = _BoardConfig;
 
   factory BoardConfig.fromJson(Map<String, dynamic> json) =>

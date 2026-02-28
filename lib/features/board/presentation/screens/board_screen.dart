@@ -1,43 +1,244 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Kanban board view (placeholder)
-/// Will display tasks in columns by status
-class BoardScreen extends StatelessWidget {
+import '../../../../shared/widgets/repository_selector.dart';
+import '../../../../shared/widgets/branch_selector.dart';
+import '../../../repository/presentation/providers/repository_providers.dart';
+import '../../../repository/presentation/providers/board_providers.dart';
+import '../../../tasks/presentation/providers/task_providers.dart';
+import '../providers/column_collapse_provider.dart';
+import '../widgets/kanban_column.dart';
+
+/// Kanban board view
+/// Displays tasks in columns by status with horizontal scrolling
+class BoardScreen extends ConsumerWidget {
   const BoardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedRepo = ref.watch(selectedRepositoryProvider);
+    final selectedBranch = ref.watch(selectedBranchProvider);
+    final hasHlaviAsync = selectedRepo != null
+        ? ref.watch(hasHlaviDirectoryProvider((
+            owner: selectedRepo.owner.login,
+            repo: selectedRepo.name,
+            branch: selectedBranch,
+          )))
+        : const AsyncValue.data(false);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Board'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(120),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              children: [
+                const RepositorySelector(),
+                const SizedBox(height: 8),
+                if (selectedRepo != null) const BranchSelector(),
+              ],
+            ),
+          ),
+        ),
       ),
-      body: const Center(
+      body: hasHlaviAsync.when(
+        data: (hasHlavi) {
+          if (selectedRepo == null) {
+            return _buildEmptyState(
+              icon: Icons.folder_outlined,
+              title: 'No Repository Selected',
+              message: 'Select a repository to view the board',
+            );
+          }
+
+          if (!hasHlavi) {
+            return _buildEmptyState(
+              icon: Icons.warning_amber_outlined,
+              title: 'No .hlavi Directory',
+              message: 'This repository does not have a .hlavi directory.\nInitialize hlavi to use the board view.',
+            );
+          }
+
+          return const _BoardContent();
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => _buildEmptyState(
+          icon: Icons.error_outline,
+          title: 'Error',
+          message: error.toString(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String message,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.view_column,
+              icon,
               size: 64,
-              color: Colors.grey,
+              color: Colors.grey.shade400,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              'Board View',
-              style: TextStyle(
-                fontSize: 24,
+              title,
+              style: const TextStyle(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'Coming soon',
+              message,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: Colors.grey.shade600,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Board content widget showing columns and tasks
+class _BoardContent extends ConsumerWidget {
+  const _BoardContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasksAsync = ref.watch(tasksProvider);
+    final boardConfigAsync = ref.watch(currentBoardConfigProvider);
+    final collapseState = ref.watch(columnCollapseProvider);
+
+    return tasksAsync.when(
+      data: (tasks) {
+        return boardConfigAsync.when(
+          data: (boardConfig) {
+            if (boardConfig == null) {
+              return const Center(child: Text('No board configuration'));
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(tasksProvider);
+                ref.invalidate(currentBoardConfigProvider);
+              },
+              child: Column(
+                children: [
+                  // Board controls
+                  _buildControls(context, ref),
+
+                  // Horizontal scrolling columns
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: boardConfig.columns.length,
+                      itemBuilder: (context, index) {
+                        final column = boardConfig.columns[index];
+                        final isCollapsed = collapseState[column.status] ?? false;
+
+                        return KanbanColumn(
+                          column: column,
+                          tasks: tasks,
+                          isCollapsed: isCollapsed,
+                          onToggleCollapse: () {
+                            ref.read(columnCollapseProvider.notifier).toggle(column.status);
+                          },
+                          onTaskTap: (task) {
+                            // TODO: Navigate to task detail
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Tapped task: ${task.id}')),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('Error loading board: $error'),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text('Error loading tasks: $error'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControls(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Board',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  ref.read(columnCollapseProvider.notifier).expandAll();
+                },
+                icon: const Icon(Icons.unfold_more, size: 18),
+                label: const Text('Expand All'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () {
+                  ref.read(columnCollapseProvider.notifier).collapseAll();
+                },
+                icon: const Icon(Icons.unfold_less, size: 18),
+                label: const Text('Collapse All'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
