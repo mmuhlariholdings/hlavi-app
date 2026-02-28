@@ -6,7 +6,6 @@ import 'package:hlavi_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:hlavi_app/features/board/presentation/screens/board_screen.dart';
 import 'package:hlavi_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:hlavi_app/features/tasks/presentation/screens/task_detail_screen.dart';
-import 'package:hlavi_app/features/timeline/presentation/screens/timeline_screen.dart';
 import 'package:hlavi_app/shared/widgets/app_bottom_navigation.dart';
 
 /// Application router configuration
@@ -36,8 +35,6 @@ class AppRouter {
               currentIndex = 1;
             } else if (location.startsWith('/board')) {
               currentIndex = 2;
-            } else if (location.startsWith('/timeline')) {
-              currentIndex = 3;
             }
 
             return Scaffold(
@@ -60,13 +57,6 @@ class AppRouter {
               path: Routes.board,
               name: 'board',
               builder: (context, state) => const BoardScreen(),
-            ),
-
-            // Timeline Route - Gantt chart timeline view
-            GoRoute(
-              path: Routes.timeline,
-              name: 'timeline',
-              builder: (context, state) => const TimelineScreen(),
             ),
 
             // Agenda Route - Date-filtered task view

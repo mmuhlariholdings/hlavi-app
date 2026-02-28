@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// Bottom navigation bar for the app
-/// Provides navigation between Dashboard, Board, Timeline, and Agenda views
+/// Provides navigation between Dashboard, Board, and Agenda views
 class AppBottomNavigation extends StatelessWidget {
   const AppBottomNavigation({
     required this.currentIndex,
@@ -21,9 +21,6 @@ class AppBottomNavigation extends StatelessWidget {
         break;
       case 2:
         context.go('/board');
-        break;
-      case 3:
-        context.go('/timeline');
         break;
     }
   }
@@ -48,11 +45,6 @@ class AppBottomNavigation extends StatelessWidget {
           icon: Icon(Icons.view_column_outlined),
           selectedIcon: Icon(Icons.view_column),
           label: 'Board',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.timeline_outlined),
-          selectedIcon: Icon(Icons.timeline),
-          label: 'Timeline',
         ),
       ],
     );
